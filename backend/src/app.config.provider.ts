@@ -5,8 +5,12 @@ export const configProvider = {
   provide: 'CONFIG',
   useValue: <AppConfig>{
     database: {
-      driver: process.env.DB_DRIVER || 'mongodb',
-      url: process.env.DB_URL || 'mongodb://localhost:27017/practicum',
+      driver: process.env.DATABASE_DRIVER || 'postgres',
+      host: process.env.DATABASE_HOST || 'localhost',
+      port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+      username: process.env.DATABASE_USERNAME || 'practicum',
+      password: process.env.DATABASE_PASSWORD || '12345',
+      database: process.env.DATABASE_NAME || 'practicum',
     },
   },
 };
@@ -16,6 +20,10 @@ export interface AppConfig {
 }
 
 export interface AppConfigDatabase {
-  driver: string;
-  url: string;
+  driver: 'postgres' | 'mongodb';
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  database: string;
 }
