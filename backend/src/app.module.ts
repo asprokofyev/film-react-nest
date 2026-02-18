@@ -4,6 +4,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'node:path';
 
 import { configProvider } from './app.config.provider';
+import { DatabaseModule } from './database/database.module';
 import { FilmsController } from './films/films.controller';
 import { FilmsService } from './films/films.service';
 import { OrderController } from './order/order.controller';
@@ -24,6 +25,7 @@ import { FilmsRepository } from './repository/films.repository';
         fallthrough: true,
       },
     }),
+    DatabaseModule,
   ],
   controllers: [FilmsController, OrderController],
   providers: [configProvider, FilmsRepository, FilmsService, OrderService],
