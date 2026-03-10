@@ -1,4 +1,4 @@
-FROM node:20 AS build
+FROM node:20 AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -14,9 +14,13 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm ci --only=production && npm cache clean --force
 
 COPY --from=build /app/dist ./dist
+
+COPY ./test /app/test
+
+RUN mkdir -p /app/public/content
 
 EXPOSE 3000
 

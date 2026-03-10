@@ -11,6 +11,7 @@ services:
       POSTGRES_DB: ${DATABASE_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/test:/docker-entrypoint-initdb.d
     ports:
       - "${DATABASE_PORT}:5432"
     networks:
@@ -34,6 +35,8 @@ services:
       - postgres
     networks:
       - afisha-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
   backend:
     build:
@@ -67,10 +70,8 @@ services:
       dockerfile: Dockerfile
     container_name: film-frontend
     restart: unless-stopped
-    ports:
-      - "5173:5173"
     volumes:
-      - frontend_dist:/app/dist
+      - frontend_build:/build
     networks:
       - afisha-network
 
@@ -82,30 +83,19 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - frontend_dist:/usr/share/nginx/html
+      - frontend_build:/usr/share/nginx/html
       - ./backend/public/content:/usr/share/nginx/html/content
-      - ./certbot/www:/var/www/certbot:ro
-      - ./certbot/conf:/etc/letsencrypt:ro
     depends_on:
       - backend
       - frontend
     networks:
       - afisha-network
 
-  certbot:
-    image: certbot/certbot:latest
-    container_name: film-certbot
-    volumes:
-      - ./certbot/www:/var/www/certbot:rw
-      - ./certbot/conf:/etc/letsencrypt:rw
-    networks:
-      - afisha-network
-
 volumes:
   postgres_data:
-  frontend_dist:
+  pgadmin_data:
+  frontend_build:
 
 
 networks:
