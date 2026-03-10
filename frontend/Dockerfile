@@ -12,5 +12,8 @@ COPY . .
 
 RUN npm run build
 
-FROM scratch AS production
+FROM alpine:latest
+
 COPY --from=builder /app/dist /build
+
+CMD ["sleep", "infinity"]
