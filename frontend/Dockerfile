@@ -13,4 +13,4 @@ COPY . .
 RUN npm run build
 
 FROM scratch AS production
-COPY --from=builder /app/build /build
+COPY --from=builder /app/dist /build
