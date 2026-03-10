@@ -1,36 +1,75 @@
-# FILM!
+## Film! — деплой через Docker и Docker Compose
 
-## Установка
+В репозитории два приложения:
 
-### MongoDB
+- `frontend` — React/Vite-приложение
+- `backend` — Nest.js API (MongoDB через mongoose)
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`.
+Для продакшен-запуска используется связка Docker + Docker Compose:
 
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+- отдельные контейнеры для фронтенда, бэкенда, MongoDB и mongo-express
+- `nginx` раздаёт собранный фронтенд и проксирует запросы на бэкенд
 
-### Бэкенд
+### Требования
 
-Перейдите в папку с исходным кодом бэкенда
+- Docker
+- Docker Compose v2
 
-`cd backend`
+### Структура Docker-файлов
 
-Установите зависимости (точно такие же, как в package-lock.json) помощью команд
+- `frontend/Dockerfile` — сборка продакшен-версии фронтенда (`npm run build`), результат складывается в volume `frontend_dist`
+- `backend/Dockerfile` — сборка NestJS в `dist` и запуск продакшен-кода (`node dist/main.js`)
+- `nginx/Dockerfile` и `nginx/nginx.conf` — nginx-сервер, раздаёт статику и проксирует `/api/afisha` и `/content/afisha` в бэкенд
+- `docker-compose.yml` — оркестрация контейнеров
 
-`npm ci` или `yarn install --frozen-lockfile`
+В `docker-compose.yml` указаны имена образов в реестре `ghcr.io`:
 
-Создайте `.env` файл из примера `.env.example`, в нём укажите:
+- `ghcr.io/your-org/film-frontend:latest`
+- `ghcr.io/your-org/film-backend:latest`
+- `ghcr.io/your-org/film-nginx:latest`
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+При желании вы можете переименовать их под свой GitHub-аккаунт и использовать `docker compose build` + `docker push` для деплоя в GitHub Container Registry.
 
-MongoDB должна быть установлена и запущена.
+### Переменные окружения
 
-Запустите бэкенд:
+Бэкенд читает настройки БД из `.env` (или переменных окружения контейнера):
 
-`npm start:debug`
+- `DB_DRIVER` — драйвер базы, по умолчанию `mongodb`
+- `DB_URL` — строка подключения к MongoDB (в docker-compose задаётся как `mongodb://mongo:27017/film-afisha`)
 
-Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
+Во фронтенде по умолчанию используются:
 
+- `VITE_API_URL=/api/afisha`
+- `VITE_CDN_URL=/content/afisha`
 
+Благодаря nginx все запросы к `/api/afisha` и `/content/afisha` проксируются в бэкенд.
 
+### Запуск через Docker Compose
+
+Из корня репозитория:
+
+```bash
+docker compose up -d --build
+```
+
+Compose поднимет следующие сервисы:
+
+- `frontend` — сборка фронтенда в volume `frontend_dist`
+- `backend` — NestJS API, подключён к MongoDB
+- `mongo` — MongoDB с базой `film-afisha`
+- `mongo-express` — web-интерфейс для MongoDB (порт `8080`)
+- `nginx` — веб-сервер (порт `80`), раздаёт SPA и проксирует API
+
+После запуска будут доступны:
+
+- само приложение: `http://localhost`
+- админка базы (mongo-express): `http://localhost:8080`
+
+Остановить и удалить контейнеры:
+
+```bash
+docker compose down
+```
+
+Том `mongo_data` в `docker-compose.yml` сохраняет данные между перезапусками.
 

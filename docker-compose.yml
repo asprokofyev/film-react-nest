@@ -1,0 +1,113 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: film-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DATABASE_PORT}:5432"
+    networks:
+      - afisha-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: film-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - afisha-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: film-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
+      PORT: ${PORT}
+      LOGGER_TYPE: ${LOGGER_TYPE}
+    ports:
+      - "${PORT}:3000"
+    volumes:
+      - ./backend/public/content:/app/public/content
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - afisha-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: film-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - frontend_dist:/app/dist
+    networks:
+      - afisha-network
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: film-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - frontend_dist:/usr/share/nginx/html
+      - ./backend/public/content:/usr/share/nginx/html/content
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - afisha-network
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: film-certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot:rw
+      - ./certbot/conf:/etc/letsencrypt:rw
+    networks:
+      - afisha-network
+
+volumes:
+  postgres_data:
+  frontend_dist:
+
+
+networks:
+  afisha-network:
+    driver: bridge

@@ -7,6 +7,7 @@ import { configProvider } from './app.config.provider';
 import { DatabaseModule } from './database/database.module';
 import { FilmsController } from './films/films.controller';
 import { FilmsService } from './films/films.service';
+import { LoggerModule } from './logger/logger.module';
 import { OrderController } from './order/order.controller';
 import { OrderService } from './order/order.service';
 import { FilmsRepository } from './repository/films.repository';
@@ -26,6 +27,7 @@ import { FilmsRepository } from './repository/films.repository';
       },
     }),
     DatabaseModule,
+    LoggerModule,
   ],
   controllers: [FilmsController, OrderController],
   providers: [configProvider, FilmsRepository, FilmsService, OrderService],
