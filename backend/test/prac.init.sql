@@ -1,8 +1,5 @@
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-    create database practicum
-        with owner practicum;
-
     create table public.films
     (
         id          uuid default uuid_generate_v4() not null

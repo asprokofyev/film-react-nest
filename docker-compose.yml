@@ -90,6 +90,38 @@ services:
     networks:
       - afisha-network
 
+  db-init:
+    image: postgres:18-alpine
+    container_name: film-db-init
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - ./backend/test:/sql
+    entrypoint: |
+      sh -c "
+        echo 'Ожидание PostgreSQL...'
+        until pg_isready -h postgres -U ${DATABASE_USERNAME}; do
+          sleep 2
+        done
+        
+        echo 'Создание таблиц...'
+        psql -h postgres -U ${DATABASE_USERNAME} -d ${DATABASE_NAME} -f /sql/prac.init.sql
+        
+        echo 'Загрузка фильмов...'
+        psql -h postgres -U ${DATABASE_USERNAME} -d ${DATABASE_NAME} -f /sql/prac.films.sql
+        
+        echo 'Загрузка расписания...'
+        psql -h postgres -U ${DATABASE_USERNAME} -d ${DATABASE_NAME} -f /sql/prac.shedules.sql
+        
+        echo 'Инициализация базы данных завершена!'
+      "
+    networks:
+      - afisha-network
+
 volumes:
   postgres_data:
   pgadmin_data:
