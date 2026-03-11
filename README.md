@@ -24,9 +24,9 @@
 
 В `docker-compose.yml` указаны имена образов в реестре `ghcr.io`:
 
-- `ghcr.io/your-org/film-frontend:latest`
-- `ghcr.io/your-org/film-backend:latest`
-- `ghcr.io/your-org/film-nginx:latest`
+- `ghcr.io/asprokofyev/film-react-nest-frontend:latest`
+- `ghcr.io/asprokofyev/film-react-nest-backend:latest`
+- `ghcr.io/asprokofyev/film-react-nest-nginx:latest`
 
 При желании вы можете переименовать их под свой GitHub-аккаунт и использовать `docker compose build` + `docker push` для деплоя в GitHub Container Registry.
 
@@ -34,15 +34,9 @@
 
 Бэкенд читает настройки БД из `.env` (или переменных окружения контейнера):
 
-- `DB_DRIVER` — драйвер базы, по умолчанию `mongodb`
-- `DB_URL` — строка подключения к MongoDB (в docker-compose задаётся как `mongodb://mongo:27017/film-afisha`)
-
-Во фронтенде по умолчанию используются:
-
-- `VITE_API_URL=/api/afisha`
-- `VITE_CDN_URL=/content/afisha`
-
-Благодаря nginx все запросы к `/api/afisha` и `/content/afisha` проксируются в бэкенд.
+- `DATABASE_DRIVER` — драйвер базы, по умолчанию `postgres`
+- `DATABASE_HOST` — хост, по умолчанию `localhost`
+- `DATABASE_PORT` — порт, по умолчанию `5432`
 
 ### Запуск через Docker Compose
 
@@ -54,10 +48,11 @@ docker compose up -d --build
 
 Compose поднимет следующие сервисы:
 
-- `frontend` — сборка фронтенда в volume `frontend_dist`
-- `backend` — NestJS API, подключён к MongoDB
-- `mongo` — MongoDB с базой `film-afisha`
-- `mongo-express` — web-интерфейс для MongoDB (порт `8080`)
+- `frontend` — сборка фронтенда в volume `frontend_build:/build`
+- `backend` — NestJS API, подключён к PostgresDB
+- `postgres` — PostgresDB с базой `practicum`
+- `pgadmin` — web-интерфейс для PostgresDB (порт `8080`)
+- `db-init` — загрузка в БД тестовых данных из sql-файлов
 - `nginx` — веб-сервер (порт `80`), раздаёт SPA и проксирует API
 
 После запуска будут доступны:
@@ -71,5 +66,6 @@ Compose поднимет следующие сервисы:
 docker compose down
 ```
 
-Том `mongo_data` в `docker-compose.yml` сохраняет данные между перезапусками.
+# Приложение размещено по адресу: 
 
+http://asprokofyev.student.nomorepartiessite.ru/
