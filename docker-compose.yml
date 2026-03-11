@@ -89,8 +89,7 @@ services:
     container_name: film-db-init
     restart: "no"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     environment:
       PGPASSWORD: ${DATABASE_PASSWORD}
     volumes:
