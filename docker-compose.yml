@@ -37,9 +37,7 @@ services:
       - pgadmin_data:/var/lib/pgadmin
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/asprokofyev/film-react-nest-backend:latest
     container_name: film-backend
     restart: unless-stopped
     env_file:
@@ -63,9 +61,7 @@ services:
       - afisha-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/asprokofyev/film-react-nest-frontend:latest
     container_name: film-frontend
     restart: unless-stopped
     volumes:
@@ -74,9 +70,7 @@ services:
       - afisha-network
 
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: ghcr.io/asprokofyev/film-react-nest-nginx:latest
     container_name: film-nginx
     restart: unless-stopped
     ports:
